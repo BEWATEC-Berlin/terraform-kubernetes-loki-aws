@@ -43,7 +43,7 @@ data "aws_iam_policy_document" "eks_oidc_assume_role" {
     }
     principals {
       identifiers = [
-        "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${replace(data.aws_eks_cluster.selected[0].identity[0].oidc[0].issuer, "https://", "")}"
+        "arn:${var.arn_format}:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${replace(data.aws_eks_cluster.selected[0].identity[0].oidc[0].issuer, "https://", "")}"
       ]
       type = "Federated"
     }
@@ -59,8 +59,8 @@ data "aws_iam_policy_document" "this" {
     ]
     effect = "Allow"
     resources = [
-      "arn:aws:s3:::${aws_s3_bucket.chunks.bucket}",
-      "arn:aws:s3:::${aws_s3_bucket.chunks.bucket}/*"
+      "arn:${var.arn_format}:s3:::${aws_s3_bucket.chunks.bucket}",
+      "arn:${var.arn_format}:s3:::${aws_s3_bucket.chunks.bucket}/*"
     ]
   }
   statement {
@@ -82,7 +82,7 @@ data "aws_iam_policy_document" "this" {
     ]
     effect = "Allow"
     resources = [
-      "arn:aws:dynamodb:${local.aws_region_name}:${data.aws_caller_identity.current.account_id}:table/${var.aws_resource_name_prefix}${var.k8s_cluster_name}-loki-index-*"
+      "arn:${var.arn_format}:dynamodb:${local.aws_region_name}:${data.aws_caller_identity.current.account_id}:table/${var.aws_resource_name_prefix}${var.k8s_cluster_name}-loki-index-*"
     ]
   }
   statement {
@@ -111,7 +111,7 @@ data "aws_iam_policy_document" "this" {
     ]
     effect = "Allow"
     resources = [
-      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${aws_iam_role.this.name}"
+      "arn:${var.arn_format}:iam::${data.aws_caller_identity.current.account_id}:role/${aws_iam_role.this.name}"
     ]
   }
 }
@@ -141,10 +141,10 @@ resource "aws_iam_role_policy_attachment" "this" {
 }
 
 resource "aws_s3_bucket" "chunks" {
-  bucket = "${var.aws_resource_name_prefix}${var.k8s_cluster_name}-loki-chunks"
-  acl    = "private"
+  bucket        = "${var.aws_resource_name_prefix}${var.k8s_cluster_name}-loki-chunks"
+  acl           = "private"
   force_destroy = true
-  tags   = var.aws_tags
+  tags          = var.aws_tags
   versioning {
     enabled = false
   }
@@ -177,7 +177,7 @@ resource "kubernetes_config_map" "rules" {
       "app.kubernetes.io/name"       = "loki-rules"
     }
     name      = "loki-rules"
-    namespace = local.k8s_namespace  
+    namespace = local.k8s_namespace
   }
 }
 resource "kubernetes_config_map" "this" {
@@ -244,7 +244,7 @@ resource "kubernetes_config_map" "this" {
         rule_path = "/tmp/scratch"
         #enable_alertmanager_discovery = true
         enable_api = true
-        enable_alertmanager_v2: true
+        enable_alertmanager_v2 : true
         ring = {
           kvstore = {
             store = "inmemory"
@@ -329,7 +329,7 @@ resource "kubernetes_deployment" "this" {
             "iam.amazonaws.com/role" = aws_iam_role.this.arn
             # Whenever the config map changes, we need to re-create our pods.
             "config.loki.grafana.com/sha1" = sha1(kubernetes_config_map.this.data["loki.yaml"])
-            "rules.loki.grafana.com/sha1" = sha1(kubernetes_config_map.rules.data["rules.yaml"])
+            "rules.loki.grafana.com/sha1"  = sha1(kubernetes_config_map.rules.data["rules.yaml"])
           },
           var.k8s_pod_annotations
         )
@@ -441,7 +441,7 @@ resource "kubernetes_deployment" "this" {
             mount_path = "/etc/loki/rules"
             name       = "rules"
             read_only  = true
-          }          
+          }
         }
         dns_policy          = "ClusterFirst"
         host_network        = false
@@ -476,7 +476,7 @@ resource "kubernetes_deployment" "this" {
           config_map {
             name = kubernetes_config_map.rules.metadata[0].name
           }
-        }      
+        }
       }
     }
   }
