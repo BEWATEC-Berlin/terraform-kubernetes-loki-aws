@@ -43,7 +43,7 @@ data "aws_iam_policy_document" "eks_oidc_assume_role" {
     }
     principals {
       identifiers = [
-        "arn:${var.arn_format}:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${replace(data.aws_eks_cluster.selected[0].identity[0].oidc[0].issuer, "https://", "")}"
+        "${var.arn_format}:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${replace(data.aws_eks_cluster.selected[0].identity[0].oidc[0].issuer, "https://", "")}"
       ]
       type = "Federated"
     }
@@ -59,8 +59,8 @@ data "aws_iam_policy_document" "this" {
     ]
     effect = "Allow"
     resources = [
-      "arn:${var.arn_format}:s3:::${aws_s3_bucket.chunks.bucket}",
-      "arn:${var.arn_format}:s3:::${aws_s3_bucket.chunks.bucket}/*"
+      "${var.arn_format}:s3:::${aws_s3_bucket.chunks.bucket}",
+      "${var.arn_format}:s3:::${aws_s3_bucket.chunks.bucket}/*"
     ]
   }
   statement {
@@ -82,7 +82,7 @@ data "aws_iam_policy_document" "this" {
     ]
     effect = "Allow"
     resources = [
-      "arn:${var.arn_format}:dynamodb:${local.aws_region_name}:${data.aws_caller_identity.current.account_id}:table/${var.aws_resource_name_prefix}${var.k8s_cluster_name}-loki-index-*"
+      "${var.arn_format}:dynamodb:${local.aws_region_name}:${data.aws_caller_identity.current.account_id}:table/${var.aws_resource_name_prefix}${var.k8s_cluster_name}-loki-index-*"
     ]
   }
   statement {
@@ -111,7 +111,7 @@ data "aws_iam_policy_document" "this" {
     ]
     effect = "Allow"
     resources = [
-      "arn:${var.arn_format}:iam::${data.aws_caller_identity.current.account_id}:role/${aws_iam_role.this.name}"
+      "${var.arn_format}:iam::${data.aws_caller_identity.current.account_id}:role/${aws_iam_role.this.name}"
     ]
   }
 }
