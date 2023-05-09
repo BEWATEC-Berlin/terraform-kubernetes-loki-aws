@@ -4,7 +4,7 @@ resource "kubernetes_ingress_v1" "loki" {
     namespace = "monitoring"
 
     annotations = {
-      "kubernetes.io/ingress.class"                  = "nginx"
+      # "kubernetes.io/ingress.class"                  = "nginx"
       "nginx.ingress.kubernetes.io/auth-secret"      = "loki-auth"
       "nginx.ingress.kubernetes.io/auth-type"        = "basic"
       "nginx.ingress.kubernetes.io/auth-realm"       = "Authentication Required"
@@ -13,6 +13,7 @@ resource "kubernetes_ingress_v1" "loki" {
   }
 
   spec {
+    ingressClassName = "nginx"
     rule {
       host = var.loki_ingress_host
 
